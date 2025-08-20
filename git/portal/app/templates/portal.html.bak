@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>HUDIUS-SOLAR - 태양광 MLOps 포털</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --primary: #0EA5E9;
+            --primary-dark: #0284C7;  
+            --secondary: #10B981;
+            --secondary-dark: #059669;
+            --accent: #F59E0B;
+            --gray-50: #F8FAFC;
+            --gray-100: #F1F5F9;
+            --gray-200: #E2E8F0;
+            --gray-600: #475569;
+            --gray-800: #1E293B;
+            --gray-900: #0F172A;
+        }
+        
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background: linear-gradient(135deg, var(--gray-50) 0%, var(--gray-100) 100%);
+            color: var(--gray-800);
+            line-height: 1.6;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: inline-block;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(14, 165, 233, 0.3);
+        }
+        
+        .nav-link {
+            color: var(--gray-600);
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        
+        .nav-link:hover, .nav-link.active {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .header-gradient {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        }
+        
+        .service-frame {
+            width: 100%;
+            height: 80vh;
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            background: white;
+        }
+        
+        .service-tabs {
+            display: flex;
+            gap: 8px;
+            background: white;
+            padding: 12px;
+            border-radius: 12px 12px 0 0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .tab-button {
+            padding: 8px 16px;
+            border: none;
+            background: var(--gray-100);
+            color: var(--gray-600);
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .tab-button.active {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .tab-button:hover:not(.active) {
+            background: var(--gray-200);
+        }
+
+        .service-container {
+            display: none;
+            position: relative;
+        }
+        
+        .service-container.active {
+            display: block;
+        }
+        
+        .logo {
+            transition: transform 0.3s ease;
+        }
+        
+        .logo:hover {
+            transform: scale(1.05);
+        }
+        
+        @media (max-width: 768px) {
+            .logo { height: 3rem; }
+        }
+        
+        @media (max-width: 640px) {
+            .header-flex-col .logo { margin-bottom: 1rem; }
+            .header-flex-col { text-align: center; }
+        }
+    </style>
+</head>
+<body>
+    <header class="header-gradient text-white">
+        <div class="container mx-auto px-6 py-8">
+            <div class="flex flex-col md:flex-row md:justify-between md:items-center">
+                <div class="flex items-center mb-4 md:mb-0">
+                    <a href="/" class="flex items-center">
+                    </a>
+                    <div>
+                        <h1 class="text-3xl md:text-4xl font-bold">
+                            <a href="/" class="text-white hover:text-blue-100 transition-colors">
+                                HUDIUS-SOLAR MLOps 포털
+                            </a>
+                        </h1>
+                        <p class="text-lg md:text-xl opacity-90 mt-1">
+                            관리자 대시보드 - 통합 관리 도구
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-4">
+                    <div id="loginSection" class="{% if is_authenticated %}hidden{% endif %}">
+                        <button id="loginBtn" onclick="showLoginModal()" class="btn-primary">
+                            🔐 관리자 로그인
+                        </button>
+                    </div>
+                    <div id="userSection" class="{% if not is_authenticated %}hidden{% endif %}">
+                        <span class="text-white font-medium">👤 {{ username|default:"관리자" }}님 환영합니다</span>
+                        <button onclick="logout()" class="ml-2 text-red-200 hover:text-white">로그아웃</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-6 py-8">
+        <div class="service-tabs">
+            <button class="tab-button active" onclick="showService('dashboard')">📊 대시보드</button>
+            <button class="tab-button" onclick="showService('airflow')">🔄 Airflow</button>
+            <button class="tab-button" onclick="showService('mlflow')">🧠 MLflow</button>
+            <button class="tab-button" onclick="showService('grafana')">📈 Grafana</button>
+            <button class="tab-button" onclick="showService('superset')">📊 Superset</button>
+            <button class="tab-button" onclick="showService('keycloak')">🔐 Keycloak</button>
+            <button class="tab-button" onclick="showService('minio')">💾 MinIO</button>
+            <button class="tab-button" onclick="showService('prometheus')">📡 Prometheus</button>
+        </div>
+
+        <div id="dashboard" class="service-container active bg-white rounded-b-lg p-8">
+            <h2 class="text-2xl font-bold mb-6">시스템 대시보드</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-lg">
+                    <div class="text-3xl font-bold text-blue-600">99.9%</div>
+                    <div class="text-gray-600">시스템 가용률</div>
+                </div>
+                <div class="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-lg">
+                    <div class="text-3xl font-bold text-green-600">5.2%</div>
+                    <div class="text-gray-600">모델 MAPE</div>
+                </div>
+                <div class="bg-gradient-to-br from-yellow-50 to-yellow-100 p-6 rounded-lg">
+                    <div class="text-3xl font-bold text-yellow-600">1.67M</div>
+                    <div class="text-gray-600">모델 파라미터</div>
+                </div>
+                <div class="bg-gradient-to-br from-purple-50 to-purple-100 p-6 rounded-lg">
+                    <div class="text-3xl font-bold text-purple-600">24h</div>
+                    <div class="text-gray-600">예측 범위</div>
+                </div>
+            </div>
+            
+            <div class="mt-8">
+                <h3 class="text-xl font-semibold mb-4">빠른 시작</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <button onclick="showService('airflow')" class="p-4 bg-blue-50 hover:bg-blue-100 rounded-lg text-left transition-colors">
+                        <div class="text-2xl mb-2">🔄</div>
+                        <div class="font-medium">워크플로우 관리</div>
+                        <div class="text-sm text-gray-600">Airflow로 데이터 파이프라인 확인</div>
+                    </button>
+                    <button onclick="showService('mlflow')" class="p-4 bg-green-50 hover:bg-green-100 rounded-lg text-left transition-colors">
+                        <div class="text-2xl mb-2">🧠</div>
+                        <div class="font-medium">실험 관리</div>
+                        <div class="text-sm text-gray-600">MLflow로 모델 실험 추적</div>
+                    </button>
+                    <button onclick="showService('grafana')" class="p-4 bg-purple-50 hover:bg-purple-100 rounded-lg text-left transition-colors">
+                        <div class="text-2xl mb-2">📈</div>
+                        <div class="font-medium">모니터링</div>
+                        <div class="text-sm text-gray-600">Grafana로 시스템 모니터링</div>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="airflow" class="service-container">
+            <div id="airflow-content-logged-in" class="bg-white rounded-b-lg overflow-hidden hidden">
+                <div class="p-4 bg-gray-50 border-b flex justify-between items-center">
+                    <h3 class="text-lg font-semibold">🔄 Apache Airflow - 워크플로우 관리</h3>
+                    <div class="flex gap-2">
+                        <button onclick="refreshService('airflow')" class="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600">새로고침</button>
+                        <button onclick="openService('/airflow/')" class="px-3 py-1 bg-green-500 text-white rounded text-sm hover:bg-green-600">새 창</button>
+                    </div>
+                </div>
+                <iframe id="airflow-frame" src="/airflow/" class="service-frame" 
+                        onload="hideLoader('airflow')" onerror="showError('airflow')"></iframe>
+            </div>
+            <div id="airflow-content-logged-out" class="{% if is_authenticated %}hidden{% endif %} text-center py-16 bg-white rounded-b-lg">
+                <div class="bg-white rounded-lg p-8 max-w-md mx-auto">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-4">🔐 로그인이 필요합니다</h2>
+                    <p class="text-gray-600 mb-6">Airflow 워크플로우를 보려면 관리자 로그인이 필요합니다.</p>
+                    <button onclick="showLoginModal()" class="btn-primary">로그인하기</button>
+                </div>
+            </div>
+        </div>
+        
+        <div id="mlflow" class="service-container">
+            <div id="mlflow-content-logged-in" class="bg-white rounded-b-lg overflow-hidden hidden">
+                <div class="p-4 bg-gray-50 border-b flex justify-between items-center">
+                    <h3 class="text-lg font-semibold">🧠 MLflow - 머신러닝 실험 관리</h3>
+                    <div class="flex gap-2">
+                        <button onclick="refreshService('mlflow')" class="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600">새로고침</button>
+                        <button onclick="openService('/mlflow/')" class="px-3 py-1 bg-green-500 text-white rounded text-sm hover:bg-green-600">새 창</button>
+                    </div>
+                </div>
+                <iframe id="mlflow-frame" src="/mlflow/" class="service-frame" 
+                        onload="hideLoader('mlflow')" onerror="showError('mlflow')"></iframe>
+            </div>
+            <div id="mlflow-content-logged-out" class="{% if is_authenticated %}hidden{% endif %} text-center py-16 bg-white rounded-b-lg">
+                <div class="bg-white rounded-lg p-8 max-w-md mx-auto">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-4">🔐 로그인이 필요합니다</h2>
+                    <p class="text-gray-600 mb-6">MLflow 실험을 보려면 관리자 로그인이 필요합니다.</p>
+                    <button onclick="showLoginModal()" class="btn-primary">로그인하기</button>
+                </div>
+            </div>
+        </div>
+        
+        <div id="grafana" class="service-container">
+            <div id="grafana-content-logged-in" class="bg-white rounded-b-lg overflow-hidden hidden">
+                <div class="p-4 bg-gray-50 border-b flex justify-between items-center">
+                    <h3 class="text-lg font-semibold">📈 Grafana - 시스템 모니터링</h3>
+                    <div class="flex gap-2">
+                        <button onclick="refreshService('grafana')" class="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600">새로고침</button>
+                        <button onclick="openService('/grafana/')" class="px-3 py-1 bg-green-500 text-white rounded text-sm hover:bg-green-600">새 창</button>
+                    </div>
+                </div>
+                <iframe id="grafana-frame" src="/grafana/" class="service-frame" 
+                        onload="hideLoader('grafana')" onerror="showError('grafana')"></iframe>
+            </div>
+            <div id="grafana-content-logged-out" class="{% if is_authenticated %}hidden{% endif %} text-center py-16 bg-white rounded-b-lg">
+                <div class="bg-white rounded-lg p-8 max-w-md mx-auto">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-4">🔐 로그인이 필요합니다</h2>
+                    <p class="text-gray-600 mb-6">Grafana 모니터링 대시보드를 보려면 관리자 로그인이 필요합니다.</p>
+                    <button onclick="showLoginModal()" class="btn-primary">로그인하기</button>
+                </div>
+            </div>
+        </div>
+        
+        <div id="superset" class="service-container">
+            <div id="superset-content-logged-in" class="bg-white rounded-b-lg overflow-hidden hidden">
+                <div class="p-4 bg-gray-50 border-b flex justify-between items-center">
+                    <h3 class="text-lg font-semibold">📊 Apache Superset - 데이터 시각화</h3>
+                    <div class="flex gap-2">
+                        <button onclick="refreshService('superset')" class="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600">새로고침</button>
+                        <button onclick="openService('/superset/')" class="px-3 py-1 bg-green-500 text-white rounded text-sm hover:bg-green-600">새 창</button>
+                    </div>
+                </div>
+                <iframe id="superset-frame" src="/superset/" class="service-frame" 
+                        onload="hideLoader('superset')" onerror="showError('superset')"></iframe>
+            </div>
+            <div id="superset-content-logged-out" class="{% if is_authenticated %}hidden{% endif %} text-center py-16 bg-white rounded-b-lg">
+                <div class="bg-white rounded-lg p-8 max-w-md mx-auto">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-4">🔐 로그인이 필요합니다</h2>
+                    <p class="text-gray-600 mb-6">Superset 데이터 시각화 자료를 보려면 관리자 로그인이 필요합니다.</p>
+                    <button onclick="showLoginModal()" class="btn-primary">로그인하기</button>
+                </div>
+            </div>
+        </div>
+        
+        <div id="keycloak" class="service-container">
+            <div id="keycloak-content-logged-in" class="bg-white rounded-b-lg overflow-hidden hidden">
+                <div class="p-4 bg-gray-50 border-b flex justify-between items-center">
+                    <h3 class="text-lg font-semibold">🔐 Keycloak - 인증 관리</h3>
+                    <div class="flex gap-2">
+                        <button onclick="refreshService('keycloak')" class="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600">새로고침</button>
+                        <button onclick="openService('/keycloak/')" class="px-3 py-1 bg-green-500 text-white rounded text-sm hover:bg-green-600">새 창</button>
+                    </div>
+                </div>
+                <iframe id="keycloak-frame" src="/keycloak/" class="service-frame" 
+                        onload="hideLoader('keycloak')" onerror="showError('keycloak')"></iframe>
+            </div>
+            <div id="keycloak-content-logged-out" class="{% if is_authenticated %}hidden{% endif %} text-center py-16 bg-white rounded-b-lg">
+                <div class="bg-white rounded-lg p-8 max-w-md mx-auto">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-4">🔐 로그인이 필요합니다</h2>
+                    <p class="text-gray-600 mb-6">Keycloak 인증 설정을 관리하려면 관리자 로그인이 필요합니다.</p>
+                    <button onclick="showLoginModal()" class="btn-primary">로그인하기</button>
+                </div>
+            </div>
+        </div>
+        
+        <div id="minio" class="service-container">
+            <div id="minio-content-logged-in" class="bg-white rounded-b-lg overflow-hidden hidden">
+                <div class="p-4 bg-gray-50 border-b flex justify-between items-center">
+                    <h3 class="text-lg font-semibold">💾 MinIO - 오브젝트 스토리지</h3>
+                    <div class="flex gap-2">
+                        <button onclick="refreshService('minio')" class="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600">새로고침</button>
+                        <button onclick="openService('/minio/')" class="px-3 py-1 bg-green-500 text-white rounded text-sm hover:bg-green-600">새 창</button>
+                    </div>
+                </div>
+                <iframe id="minio-frame" src="/minio/" class="service-frame" 
+                        onload="hideLoader('minio')" onerror="showError('minio')"></iframe>
+            </div>
+            <div id="minio-content-logged-out" class="{% if is_authenticated %}hidden{% endif %} text-center py-16 bg-white rounded-b-lg">
+                <div class="bg-white rounded-lg p-8 max-w-md mx-auto">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-4">🔐 로그인이 필요합니다</h2>
+                    <p class="text-gray-600 mb-6">MinIO 오브젝트 스토리지를 관리하려면 관리자 로그인이 필요합니다.</p>
+                    <button onclick="showLoginModal()" class="btn-primary">로그인하기</button>
+                </div>
+            </div>
+        </div>
+        
+        <div id="prometheus" class="service-container">
+            <div id="prometheus-content-logged-in" class="bg-white rounded-b-lg overflow-hidden hidden">
+                <div class="p-4 bg-gray-50 border-b flex justify-between items-center">
+                    <h3 class="text-lg font-semibold">📡 Prometheus - 시스템 모니터링</h3>
+                    <div class="flex gap-2">
+                        <button onclick="refreshService('prometheus')" class="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600">새로고침</button>
+                        <button onclick="openService('/prometheus/')" class="px-3 py-1 bg-green-500 text-white rounded text-sm hover:bg-green-600">새 창</button>
+                    </div>
+                </div>
+                <iframe id="prometheus-frame" src="/prometheus/" class="service-frame" 
+                        onload="hideLoader('prometheus')" onerror="showError('prometheus')"></iframe>
+            </div>
+            <div id="prometheus-content-logged-out" class="{% if is_authenticated %}hidden{% endif %} text-center py-16 bg-white rounded-b-lg">
+                <div class="bg-white rounded-lg p-8 max-w-md mx-auto">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-4">🔐 로그인이 필요합니다</h2>
+                    <p class="text-gray-600 mb-6">Prometheus 모니터링 데이터를 보려면 관리자 로그인이 필요합니다.</p>
+                    <button onclick="showLoginModal()" class="btn-primary">로그인하기</button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <div id="loginModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-8 max-w-md w-full mx-4">
+            <div class="text-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-900">🔐 Keycloak SSO 로그인</h2>
+                <p class="text-gray-600 mt-2">통합 MLOps 플랫폼에 접근하려면 Keycloak 인증이 필요합니다</p>
+            </div>
+            
+            <div class="text-center">
+                <div class="mb-6">
+                    <p class="text-gray-600 mb-4">HUDIUS-SOLAR 통합 인증 시스템을 통해 안전하게 로그인하세요</p>
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                        <p class="text-blue-800 text-sm">
+                            <strong>Keycloak SSO</strong>를 사용하여<br>
+                            모든 서비스에 단일 계정으로 접근할 수 있습니다
+                        </p>
+                    </div>
+                </div>
+                
+                <div id="loginError" class="hidden mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+                    로그인에 실패했습니다. 다시 시도해주세요.
+                </div>
+                
+                <div class="flex gap-4">
+                    <button type="button" onclick="hideLoginModal()" 
+                            class="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+                        취소
+                    </button>
+                    <button type="button" onclick="initiateKeycloakLogin()" 
+                            class="flex-1 btn-primary">
+                        🔐 Keycloak으로 로그인
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 현재 활성 서비스
+        let currentService = 'dashboard';
+        
+        // 페이지 로드 시 인증 상태 확인
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAuthStatus();
+        });
+        
+        // Keycloak OIDC 인증 상태 확인
+        async function checkAuthStatus() {
+            try {
+                // Django의 request.user 정보를 사용하여 인증 상태 확인
+                const response = await fetch('/api/check-auth/');
+                const data = await response.json();
+                
+                if (data.authenticated) {
+                    showAuthenticatedState(data.username);
+                } else {
+                    showUnauthenticatedState();
+                }
+            } catch (error) {
+                console.error('인증 상태 확인 오류:', error);
+                showUnauthenticatedState();
+            }
+        }
+        
+        function showAuthenticatedState(username) {
+            document.getElementById('loginSection').classList.add('hidden');
+            document.getElementById('userSection').classList.remove('hidden');
+            
+            // 로그인 시 서비스 영역 보이기
+            const serviceContainers = document.querySelectorAll('.service-container');
+            serviceContainers.forEach(container => {
+                const loggedInContent = container.querySelector('[id$="-content-logged-in"]');
+                const loggedOutContent = container.querySelector('[id$="-content-logged-out"]');
+                if (loggedInContent) loggedInContent.classList.remove('hidden');
+                if (loggedOutContent) loggedOutContent.classList.add('hidden');
+            });
+
+            // 사용자명 업데이트
+            const userSpan = document.querySelector('#userSection span');
+            if (userSpan) {
+                userSpan.textContent = `👤 ${username}님 환영합니다`;
+            }
+
+            // 활성 탭 재설정 (대시보드가 기본)
+            showService('dashboard');
+        }
+        
+        function showUnauthenticatedState() {
+            document.getElementById('loginSection').classList.remove('hidden');
+            document.getElementById('userSection').classList.add('hidden');
+            
+            // 비로그인 시 서비스 영역 보이기
+            const serviceContainers = document.querySelectorAll('.service-container');
+            serviceContainers.forEach(container => {
+                const loggedInContent = container.querySelector('[id$="-content-logged-in"]');
+                const loggedOutContent = container.querySelector('[id$="-content-logged-out"]');
+                if (loggedInContent) loggedInContent.classList.add('hidden');
+                if (loggedOutContent) loggedOutContent.classList.remove('hidden');
+            });
+
+            // 대시보드만 활성화
+            showService('dashboard');
+        }
+        
+        function showService(serviceName) {
+            // 모든 서비스 컨테이너 숨기기
+            document.querySelectorAll('.service-container').forEach(container => {
+                container.classList.remove('active');
+            });
+            
+            // 모든 탭 버튼 비활성화
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.classList.remove('active');
+            });
+            
+            // 선택된 서비스 표시 및 탭 활성화
+            document.getElementById(serviceName).classList.add('active');
+            document.querySelector(`.tab-button[onclick="showService('${serviceName}')"]`).classList.add('active');
+            
+            currentService = serviceName;
+            
+            // iframe이 있는 서비스의 경우 로딩 상태 초기화
+            const iframe = document.getElementById(serviceName + '-frame');
+            if (iframe) {
+                const loader = document.getElementById(serviceName + '-loader');
+                if (loader) loader.classList.remove('hidden');
+            }
+        }
+        
+        function openService(serviceUrl) {
+            // 새 탭에서 서비스 열기
+            window.open(serviceUrl, '_blank');
+        }
+        
+        function refreshService(serviceName) {
+            // iframe 새로고침
+            const iframe = document.getElementById(serviceName + '-frame');
+            const loader = document.getElementById(serviceName + '-loader');
+            const error = document.getElementById(serviceName + '-error');
+            
+            if (iframe) {
+                // 로더 표시, 에러 숨기기
+                if (loader) loader.classList.remove('hidden');
+                if (error) error.classList.add('hidden');
+                
+                // iframe 새로고침
+                iframe.src = iframe.src;
+            }
+        }
+        
+        function hideLoader(serviceName) {
+            // 로딩 완료 시 로더 숨기기
+            const loader = document.getElementById(serviceName + '-loader');
+            if (loader) {
+                loader.classList.add('hidden');
+            }
+        }
+        
+        function showError(serviceName) {
+            // 에러 발생 시 에러 메시지 표시
+            const loader = document.getElementById(serviceName + '-loader');
+            const error = document.getElementById(serviceName + '-error');
+            
+            if (loader) loader.classList.add('hidden');
+            if (error) error.classList.remove('hidden');
+        }
+        
+        function showLoginModal() {
+            document.getElementById('loginModal').classList.remove('hidden');
+            document.getElementById('loginError').classList.add('hidden');
+        }
+        
+        function hideLoginModal() {
+            document.getElementById('loginModal').classList.add('hidden');
+        }
+        
+        // Keycloak OIDC 로그인 초기화
+        function initiateKeycloakLogin() {
+            try {
+                // Keycloak OIDC 로그인 URL로 리다이렉트
+                const keycloakLoginUrl = '/auth/login/';
+                window.location.href = keycloakLoginUrl;
+            } catch (error) {
+                console.error('Keycloak 로그인 초기화 오류:', error);
+                document.getElementById('loginError').classList.remove('hidden');
+                document.getElementById('loginError').textContent = 'Keycloak 로그인을 초기화할 수 없습니다.';
+            }
+        }
+        
+        // Keycloak OIDC 로그아웃
+        async function logout() {
+            try {
+                // Keycloak OIDC 로그아웃 URL로 리다이렉트
+                const keycloakLogoutUrl = '/auth/logout/';
+                window.location.href = keycloakLogoutUrl;
+            } catch (error) {
+                console.error('Keycloak 로그아웃 오류:', error);
+                // 오류 발생 시 강제로 비인증 상태로 변경
+                showUnauthenticatedState();
+            }
+        }
+        
+        // ESC 키로 모달 닫기
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                hideLoginModal();
+            }
+        });
+        
+        // 모달 배경 클릭 시 닫기
+        document.getElementById('loginModal').addEventListener('click', function(event) {
+            if (event.target === this) {
+                hideLoginModal();
+            }
+        });
+    </script>
+</body>
+</html>

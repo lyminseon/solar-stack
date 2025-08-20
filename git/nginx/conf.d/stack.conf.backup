@@ -1,0 +1,220 @@
+resolver 127.0.0.11 ipv6=off valid=30s;
+
+server {
+  listen 80;
+  server_name airflow.greenfesco.com;
+  set $airflow_upstream airflow-api-server:8080;
+  location / { proxy_pass http://$airflow_upstream; }
+  location ^~ /.well-known/acme-challenge/ { root /var/www/certbot; }
+}
+server {
+  listen 80;
+  server_name mlflow.greenfesco.com;
+  set $mlflow_upstream mlflow:5000;
+  location / { proxy_pass http://$mlflow_upstream; }
+  location ^~ /.well-known/acme-challenge/ { root /var/www/certbot; }
+}
+server {
+  listen 80;
+  server_name grafana.greenfesco.com;
+  set $grafana_upstream grafana:3000;
+  location / { proxy_pass http://$grafana_upstream; }
+  location ^~ /.well-known/acme-challenge/ { root /var/www/certbot; }
+}
+server {
+  listen 80;
+  server_name superset.greenfesco.com;
+  set $superset_upstream superset:8088;
+  location / { proxy_pass http://$superset_upstream; }
+  location ^~ /.well-known/acme-challenge/ { root /var/www/certbot; }
+}
+server {
+  listen 80;
+  server_name keycloak.greenfesco.com;
+  set $keycloak_upstream keycloak:8080;
+  location / { proxy_pass http://$keycloak_upstream; }
+  location ^~ /.well-known/acme-challenge/ { root /var/www/certbot; }
+}
+server {
+  listen 80;
+  server_name minio.greenfesco.com;
+  set $minio_upstream minio:9000;
+  location / { proxy_pass http://$minio_upstream; }
+  location ^~ /.well-known/acme-challenge/ { root /var/www/certbot; }
+}
+server {
+  listen 80;
+  server_name minio-console.greenfesco.com;
+  set $minio_console_upstream minio:9001;
+  location / { proxy_pass http://$minio_console_upstream; }
+  location ^~ /.well-known/acme-challenge/ { root /var/www/certbot; }
+}
+#server {
+#  listen 80;
+#  server_name llm.greenfesco.com;
+#  set $llm_upstream vllm:8000;
+#  location / { proxy_pass http://$llm_upstream; }
+#  location ^~ /.well-known/acme-challenge/ { root /var/www/certbot; }
+#}
+server {
+  listen 80;
+  server_name prometheus.greenfesco.com;
+  set $prometheus_upstream prometheus:9090;
+  location / { proxy_pass http://$prometheus_upstream; }
+  location ^~ /.well-known/acme-challenge/ { root /var/www/certbot; }
+}
+server {
+  listen 80;
+  server_name loki.greenfesco.com;
+  set $loki_upstream loki:3100;
+  location / { proxy_pass http://$loki_upstream; }
+  location ^~ /.well-known/acme-challenge/ { root /var/www/certbot; }
+}
+server {
+  listen 80;
+  server_name kafka-connect.greenfesco.com;
+  set $kafka_connect_upstream kafka-connect:8083;
+  location / { proxy_pass http://$kafka_connect_upstream; }
+  location ^~ /.well-known/acme-challenge/ { root /var/www/certbot; }
+}
+
+# IP 접속용 기본 서버 (59.0.196.26)
+server {
+  listen 80 default_server;
+  server_name _;
+  
+  set $portal_upstream portal:8001;
+  location / { 
+    proxy_pass http://$portal_upstream; 
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+  }
+  
+  set $airflow_upstream_default airflow-api-server:8080;
+  location /airflow/ { 
+    proxy_pass http://$airflow_upstream_default/;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_redirect off;
+  }
+  location /mlflow/ { proxy_pass http://mlflow:5000/; }
+  location /grafana/ { proxy_pass http://$grafana_upstream/; }
+  location /superset/ { proxy_pass http://$superset_upstream/; }
+  location /keycloak/ {
+    proxy_pass http://keycloak:8080;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header X-Forwarded-Host $host;
+    proxy_set_header X-Forwarded-Prefix /keycloak;
+  }
+  location /minio/ { proxy_pass http://$minio_upstream/; }
+  location /prometheus/ { proxy_pass http://$prometheus_upstream/; }
+  location ^~ /.well-known/acme-challenge/ { root /var/www/certbot; }
+}
+
+server {
+  listen 80;
+  server_name www.greenfesco.com;
+
+  # 메인 포털 (일반 사용자 접근 가능)
+  location / {
+    proxy_pass http://portal:8001;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    client_max_body_size 50m;
+    proxy_read_timeout 120s;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+  }
+
+  # 관리 도구들 (인증 필요 - 추후 auth_request 추가 예정)
+  location /airflow/ { 
+    proxy_pass http://airflow-api-server:8080/;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header X-Script-Name /airflow;
+    proxy_redirect off;
+    
+    # iframe 허용을 위한 헤더 설정
+    proxy_hide_header X-Frame-Options;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    
+    # 정적 파일 및 API 경로 처리
+    proxy_buffering off;
+    proxy_request_buffering off;
+  }
+  
+  location /mlflow/ { 
+    proxy_pass http://mlflow:5000/; 
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_hide_header X-Frame-Options;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+  }
+  
+  location /grafana/ { 
+    proxy_pass http://grafana:3000/; 
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_hide_header X-Frame-Options;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+  }
+  
+  location /superset/ { 
+    proxy_pass http://superset:8088/; 
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_hide_header X-Frame-Options;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+  }
+  
+  location /keycloak/ { 
+    proxy_pass http://keycloak:8080; 
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header X-Forwarded-Host $host;
+    proxy_set_header X-Forwarded-Prefix /keycloak;
+    proxy_hide_header X-Frame-Options;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+  }
+  
+  location /minio/ { 
+    proxy_pass http://minio:9000/; 
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_hide_header X-Frame-Options;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+  }
+  
+  location /prometheus/ { 
+    proxy_pass http://prometheus:9090/; 
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_hide_header X-Frame-Options;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+  }
+
+  location ^~ /.well-known/acme-challenge/ { root /var/www/certbot; }
+}

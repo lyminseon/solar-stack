@@ -1,0 +1,2 @@
+nohup: 입력 무시
+strconv.ParseUint: parsing "5432:5432": invalid syntax

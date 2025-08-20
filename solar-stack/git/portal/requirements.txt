@@ -1,0 +1,29 @@
+# Django 및 웹 프레임워크
+Django>=5.0
+djangorestframework
+gunicorn
+
+# 데이터베이스
+psycopg2-binary
+dj-database-url>=3.0.0
+
+# OIDC 인증
+mozilla-django-oidc
+python-jose[cryptography]
+
+# 데이터 처리
+pandas
+numpy
+pytz
+
+# 모니터링
+prometheus-client
+
+# 기타
+flask
+pymysql
+requests
+
+# Feast (ML Feature Store)
+feast[postgres]==0.51.0
+psycopg[binary]>=3.1

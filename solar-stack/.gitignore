@@ -1,0 +1,52 @@
+# Solar Stack Project .gitignore
+
+# Logs
+*.log
+logs/
+
+# Environment variables
+.env
+.env.local
+.env.production
+
+# Docker
+docker-compose.override.yml
+
+# SSL certificates
+ssl/
+letsencrypt/
+certbot-webroot/
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Database
+*.db
+*.sqlite
+
+# Node modules (if any)
+node_modules/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+ENV/
+
+# Backup files
+*-solar-stack-nginx-1*
+ql*

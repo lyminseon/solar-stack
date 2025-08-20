@@ -1,0 +1,8 @@
+address: "0.0.0.0:8888"
+telemetry:
+  enabled: false
+events:
+  systemEvents:
+    enabled: false
+log:
+  level: "info"

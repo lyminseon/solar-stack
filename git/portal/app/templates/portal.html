@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>HUDIUS-SOLAR - MLOps 2.0 통합 포털</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+    <style>
+        :root {
+            --primary: #0EA5E9;
+            --primary-dark: #0284C7;  
+            --secondary: #10B981;
+            --secondary-dark: #059669;
+            --accent: #F59E0B;
+            --success: #22C55E;
+            --warning: #F59E0B;
+            --error: #EF4444;
+            --gray-50: #F8FAFC;
+            --gray-100: #F1F5F9;
+            --gray-200: #E2E8F0;
+            --gray-600: #475569;
+            --gray-800: #1E293B;
+            --gray-900: #0F172A;
+        }
+        
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background: linear-gradient(135deg, var(--gray-50) 0%, var(--gray-100) 100%);
+            color: var(--gray-800);
+            line-height: 1.6;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: inline-block;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(14, 165, 233, 0.3);
+        }
+        
+        .service-card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        
+        .service-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            border-color: var(--primary);
+        }
+        
+        .service-card.requires-auth {
+            border-color: var(--warning);
+        }
+        
+        .service-card.requires-auth::before {
+            content: "🔒";
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            font-size: 20px;
+        }
+        
+        .mlops-stage {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .mlops-stage.stage1 { background: linear-gradient(135deg, var(--success) 0%, var(--secondary) 100%); }
+        .mlops-stage.stage2 { background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%); }
+        
+        .flow-arrow {
+            color: var(--primary);
+            font-size: 24px;
+            margin: 0 16px;
+        }
+        
+        .login-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .login-modal {
+            background: white;
+            padding: 32px;
+            border-radius: 16px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+        }
+        
+        .hidden { display: none; }
+        .visible { display: block; }
+    </style>
+</head>
+<body class="min-h-screen">
+    <!-- Header -->
+    <header class="header-gradient text-white py-8">
+        <div class="container mx-auto px-6">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center">
+                        <i data-feather="sun" class="w-8 h-8 text-blue-600"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-3xl font-bold text-blue-900">HUDIUS-SOLAR</h1>
+                        <p class="text-blue-900 font-semibold">MLOps 2.0 통합 포털</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="text-blue-900 font-semibold">태양광 데이터 기반 AI/ML 플랫폼</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-6 py-8">
+        <!-- MLOps 2.0 Overview -->
+        <section class="mb-12">
+            <div class="text-center mb-8">
+                <h2 class="text-4xl font-bold text-gray-800 mb-4">MLOps 2.0 아키텍처</h2>
+                <p class="text-xl text-gray-600">데이터 수집부터 모델 배포까지 통합된 워크플로우</p>
+            </div>
+            
+            <!-- MLOps Flow Diagram -->
+            <div class="bg-white rounded-20 p-8 mb-8">
+                <div class="flex items-center justify-center flex-wrap gap-4">
+                    <div class="text-center">
+                        <div class="mlops-stage stage1">Stage 1</div>
+                        <h3 class="font-bold text-lg mt-2">데이터 수집 & 저장</h3>
+                        <p class="text-sm text-gray-600">IoT 센서, 시계열 DB</p>
+                    </div>
+                    <div class="flow-arrow">→</div>
+                    <div class="text-center">
+                        <div class="mlops-stage stage1">Stage 1</div>
+                        <h3 class="font-bold text-lg mt-2">데이터 처리</h3>
+                        <p class="text-sm text-gray-600">ETL, 스트리밍</p>
+                    </div>
+                    <div class="flow-arrow">→</div>
+                    <div class="text-center">
+                        <div class="mlops-stage stage2">Stage 2</div>
+                        <h3 class="font-bold text-lg mt-2">ML 모델 개발</h3>
+                        <p class="text-sm text-gray-600">실험, 버전 관리</p>
+                    </div>
+                    <div class="flow-arrow">→</div>
+                    <div class="text-center">
+                        <div class="mlops-stage stage2">Stage 2</div>
+                        <h3 class="font-bold text-lg mt-2">모델 배포 & 모니터링</h3>
+                        <p class="text-sm text-gray-600">A/B 테스트, 성능 추적</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Services Grid -->
+        <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <!-- Data Collection & Storage -->
+            <div class="service-card">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xl font-bold text-gray-800">데이터 수집 & 저장</h3>
+                    <span class="mlops-stage stage1">Stage 1</span>
+                </div>
+                <div class="space-y-3">
+                    <div class="flex items-center space-x-2">
+                        <i data-feather="database" class="w-5 h-5 text-blue-600"></i>
+                        <span>TimescaleDB (시계열 데이터)</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <i data-feather="cloud" class="w-5 h-5 text-green-600"></i>
+                        <span>MinIO (객체 저장소)</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <i data-feather="activity" class="w-5 h-5 text-purple-600"></i>
+                        <span>Kafka (스트리밍)</span>
+                    </div>
+                </div>
+                <p class="text-sm text-gray-600 mt-4">
+                    태양광 발전소 IoT 센서 데이터 수집 및 시계열 데이터베이스 저장
+                </p>
+            </div>
+
+            <!-- Data Processing -->
+            <div class="service-card">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xl font-bold text-gray-800">데이터 처리</h3>
+                    <span class="mlops-stage stage1">Stage 1</span>
+                </div>
+                <div class="space-y-3">
+                    <div class="flex items-center space-x-2">
+                        <i data-feather="zap" class="w-5 h-5 text-yellow-600"></i>
+                        <span>Airflow (워크플로우)</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <i data-feather="refresh-cw" class="w-5 h-5 text-indigo-600"></i>
+                        <span>Kafka Connect (ETL)</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <i data-feather="trending-up" class="w-5 h-5 text-red-600"></i>
+                        <span>Prometheus (메트릭)</span>
+                    </div>
+                </div>
+                <p class="text-sm text-gray-600 mt-4">
+                    데이터 파이프라인 구축 및 실시간 스트리밍 처리
+                </p>
+            </div>
+
+            <!-- ML Development -->
+            <div class="service-card requires-auth">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xl font-bold text-gray-800">ML 모델 개발</h3>
+                    <span class="mlops-stage stage2">Stage 2</span>
+                </div>
+                <div class="space-y-3">
+                    <div class="flex items-center space-x-2">
+                        <i data-feather="code" class="w-5 h-5 text-green-600"></i>
+                        <span>MLflow (실험 관리)</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <i data-feather="git-branch" class="w-5 h-5 text-blue-600"></i>
+                        <span>Git (코드 관리)</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <i data-feather="cpu" class="w-5 h-5 text-purple-600"></i>
+                        <span>VLLM (추론 서버)</span>
+                    </div>
+                </div>
+                <p class="text-sm text-gray-600 mt-4">
+                    머신러닝 모델 실험, 버전 관리 및 추론 서비스
+                </p>
+                <button onclick="showLoginModal('MLflow')" class="btn-primary w-full mt-4">
+                    로그인하여 접근
+                </button>
+            </div>
+
+            <!-- Model Deployment -->
+            <div class="service-card requires-auth">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xl font-bold text-gray-800">모델 배포 & 모니터링</h3>
+                    <span class="mlops-stage stage2">Stage 2</span>
+                </div>
+                <div class="space-y-3">
+                    <div class="flex items-center space-x-2">
+                        <i data-feather="bar-chart-2" class="w-5 h-5 text-blue-600"></i>
+                        <span>Grafana (대시보드)</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <i data-feather="pie-chart" class="w-5 h-5 text-green-600"></i>
+                        <span>Superset (분석)</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <i data-feather="eye" class="w-5 h-5 text-purple-600"></i>
+                        <span>Loki (로그)</span>
+                    </div>
+                </div>
+                <p class="text-sm text-gray-600 mt-4">
+                    모델 성능 모니터링 및 비즈니스 인사이트 도출
+                </p>
+                <button onclick="showLoginModal('Grafana')" class="btn-primary w-full mt-4">
+                    로그인하여 접근
+                </button>
+            </div>
+
+            <!-- Infrastructure -->
+            <div class="service-card">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xl font-bold text-gray-800">인프라 & 보안</h3>
+                    <span class="mlops-stage stage1">Stage 1</span>
+                </div>
+                <div class="space-y-3">
+                    <div class="flex items-center space-x-2">
+                        <i data-feather="shield" class="w-5 h-5 text-red-600"></i>
+                        <span>Keycloak (통합 인증)</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <i data-feather="server" class="w-5 h-5 text-gray-600"></i>
+                        <span>Docker (컨테이너)</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <i data-feather="monitor" class="w-5 h-5 text-blue-600"></i>
+                        <span>Prometheus (모니터링)</span>
+                    </div>
+                </div>
+                <p class="text-sm text-gray-600 mt-4">
+                    컨테이너 기반 인프라 및 통합 보안 관리
+                </p>
+            </div>
+
+            <!-- Business Intelligence -->
+            <div class="service-card requires-auth">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xl font-bold text-gray-800">비즈니스 인텔리전스</h3>
+                    <span class="mlops-stage stage2">Stage 2</span>
+                </div>
+                <div class="space-y-3">
+                    <div class="flex items-center space-x-2">
+                        <i data-feather="dollar-sign" class="w-5 h-5 text-green-600"></i>
+                        <span>InvoiceNinja (인보이스)</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <i data-feather="bar-chart" class="w-5 h-5 text-blue-600"></i>
+                        <span>OpenMeter (사용량)</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <i data-feather="users" class="w-5 h-5 text-purple-600"></i>
+                        <span>사용자 관리</span>
+                    </div>
+                </div>
+                <p class="text-sm text-gray-600 mt-4">
+                    비즈니스 프로세스 자동화 및 사용자 관리
+                </p>
+                <button onclick="showLoginModal('BI')" class="btn-primary w-full mt-4">
+                    로그인하여 접근
+                </button>
+            </div>
+        </section>
+
+        <!-- System Architecture -->
+        <section class="mt-16">
+            <h2 class="text-3xl font-bold text-center text-gray-800 mb-8">시스템 아키텍처</h2>
+            <div class="bg-white rounded-20 p-8">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- Data Layer -->
+                    <div class="text-center">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4">데이터 레이어</h3>
+                        <div class="space-y-2 text-sm">
+                            <div class="bg-gray-100 p-2 rounded">IoT 센서 데이터</div>
+                            <div class="bg-gray-100 p-2 rounded">TimescaleDB</div>
+                            <div class="bg-gray-100 p-2 rounded">MinIO S3</div>
+                            <div class="bg-gray-100 p-2 rounded">Kafka Streams</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Processing Layer -->
+                    <div class="text-center">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4">처리 레이어</h3>
+                        <div class="space-y-2 text-sm">
+                            <div class="bg-blue-100 p-2 rounded">Airflow DAGs</div>
+                            <div class="bg-blue-100 p-2 rounded">Kafka Connect</div>
+                            <div class="bg-blue-100 p-2 rounded">MLflow Pipeline</div>
+                            <div class="bg-blue-100 p-2 rounded">VLLM Inference</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Presentation Layer -->
+                    <div class="text-center">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4">표현 레이어</h3>
+                        <div class="space-y-2 text-sm">
+                            <div class="bg-green-100 p-2 rounded">Grafana Dashboards</div>
+                            <div class="bg-green-100 p-2 rounded">Superset Reports</div>
+                            <div class="bg-green-100 p-2 rounded">Portal UI</div>
+                            <div class="bg-green-100 p-2 rounded">API Gateway</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Login Modal -->
+    <div id="loginOverlay" class="login-overlay">
+        <div class="login-modal">
+            <h3 class="text-2xl font-bold text-gray-800 mb-4">로그인이 필요합니다</h3>
+            <p class="text-gray-600 mb-6" id="loginMessage">
+                선택한 서비스에 접근하려면 로그인이 필요합니다.
+            </p>
+            <div class="space-y-4">
+                <button onclick="redirectToKeycloak()" class="btn-primary w-full">
+                    Keycloak으로 로그인
+                </button>
+                <button onclick="closeLoginModal()" class="w-full py-3 px-4 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+                    취소
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-8 mt-16">
+        <div class="container mx-auto px-6 text-center">
+            <p>&copy; 2024 HUDIUS-SOLAR. MLOps 2.0 통합 플랫폼</p>
+            <p class="text-gray-400 mt-2">태양광 발전소 데이터 기반 AI/ML 솔루션</p>
+        </div>
+    </footer>
+
+    <script>
+        // Feather Icons 초기화
+        feather.replace();
+
+        // 로그인 모달 표시
+        function showLoginModal(service) {
+            const overlay = document.getElementById('loginOverlay');
+            const message = document.getElementById('loginMessage');
+            
+            message.textContent = `${service} 서비스에 접근하려면 로그인이 필요합니다.`;
+            overlay.style.display = 'flex';
+        }
+
+        // 로그인 모달 닫기
+        function closeLoginModal() {
+            document.getElementById('loginOverlay').style.display = 'none';
+        }
+
+        // Keycloak으로 리다이렉트
+        function redirectToKeycloak() {
+            // Keycloak 로그인 URL로 리다이렉트
+            window.location.href = '/keycloak/auth?client_id=portal&redirect_uri=' + encodeURIComponent(window.location.origin);
+        }
+
+        // 모달 외부 클릭시 닫기
+        document.getElementById('loginOverlay').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeLoginModal();
+            }
+        });
+
+        // ESC 키로 모달 닫기
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeLoginModal();
+            }
+        });
+    </script>
+</body>
+</html>

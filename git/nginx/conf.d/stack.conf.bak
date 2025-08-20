@@ -1,0 +1,19 @@
+# 메인 포털: www.greenfesco.com
+server {
+  listen 80;
+  server_name www.greenfesco.com;
+  location / { proxy_pass http://portal:8001; }
+  location ^~ /.well-known/acme-challenge/ { root /var/www/certbot; }
+}
+
+server { listen 80; server_name airflow.greenfesco.com;  location / { proxy_pass http://airflow-webserver:8080; }  location ^~ /.well-known/acme-challenge/ { root /var/www/certbot; } }
+server { listen 80; server_name mlflow.greenfesco.com;   location / { proxy_pass http://mlflow:5000; }             location ^~ /.well-known/acme-challenge/ { root /var/www/certbot; } }
+server { listen 80; server_name grafana.greenfesco.com;  location / { proxy_pass http://grafana:3000; }            location ^~ /.well-known/acme-challenge/ { root /var/www/certbot; } }
+server { listen 80; server_name superset.greenfesco.com; location / { proxy_pass http://superset:8088; }           location ^~ /.well-known/acme-challenge/ { root /var/www/certbot; } }
+server { listen 80; server_name keycloak.greenfesco.com; location / { proxy_pass http://keycloak:8080; }           location ^~ /.well-known/acme-challenge/ { root /var/www/certbot; } }
+server { listen 80; server_name minio.greenfesco.com;    location / { proxy_pass http://minio:9000; }              location ^~ /.well-known/acme-challenge/ { root /var/www/certbot; } }
+server { listen 80; server_name minio-console.greenfesco.com; location / { proxy_pass http://minio:9001; }         location ^~ /.well-known/acme-challenge/ { root /var/www/certbot; } }
+server { listen 80; server_name llm.greenfesco.com;      location / { proxy_pass http://vllm:8000; }               location ^~ /.well-known/acme-challenge/ { root /var/www/certbot; } }
+server { listen 80; server_name prometheus.greenfesco.com; location / { proxy_pass http://prometheus:9090; }       location ^~ /.well-known/acme-challenge/ { root /var/www/certbot; } }
+server { listen 80; server_name loki.greenfesco.com;     location / { proxy_pass http://loki:3100; }               location ^~ /.well-known/acme-challenge/ { root /var/www/certbot; } }
+server { listen 80; server_name kafka-connect.greenfesco.com; location / { proxy_pass http://kafka-connect:8083; } location ^~ /.well-known/acme-challenge/ { root /var/www/certbot; } }

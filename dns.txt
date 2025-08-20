@@ -1,0 +1,14 @@
+| 호스트명                                                | 용도              | 내부 라우팅 대상                |
+| --------------------------------------------------- | ---------------     | ------------------------ |
+| **[www.greenfesco.com](http://www.greenfesco.com)** | 메인 포털(Django)   | `portal:8001`            |
+| airflow\.greenfesco.com                             | Airflow         | `airflow-webserver:8080` |
+| mlflow\.greenfesco.com                              | MLflow          | `mlflow:5000`            |
+| grafana.greenfesco.com                              | Grafana         | `grafana:3000`           |
+| superset.greenfesco.com                             | Superset        | `superset:8088`          |
+| keycloak.greenfesco.com                             | Keycloak        | `keycloak:8080`          |
+| minio.greenfesco.com                                | MinIO API       | `minio:9000`             |
+| minio-console.greenfesco.com                        | MinIO 콘솔        | `minio:9001`             |
+| llm.greenfesco.com                                  | vLLM(OpenAI 호환) | `vllm:8000`              |
+| prometheus.greenfesco.com                           | Prometheus      | `prometheus:9090`        |
+| loki.greenfesco.com                                 | Loki            | `loki:3100`              |
+| kafka-connect.greenfesco.com                        | Kafka Connect   | `kafka-connect:8083`     |

@@ -1,0 +1,32 @@
+<svg width="280" height="80" viewBox="0 0 280 80" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .hudius-text { font-family: 'Arial Black', Arial, sans-serif; font-weight: 900; }
+      .partner-text { font-family: Arial, sans-serif; font-weight: 400; letter-spacing: 3px; }
+    </style>
+  </defs>
+  
+  <!-- 로고 아이콘 부분 -->
+  <g transform="translate(10, 10)">
+    <!-- 원형 -->
+    <circle cx="25" cy="15" r="12" fill="#2DD4BF" />
+    
+    <!-- H 로고 디자인 -->
+    <g transform="translate(0, 25)">
+      <!-- 메인 H 구조 -->
+      <path d="M 0 0 L 8 0 L 8 15 L 12 15 L 12 0 L 20 0 L 30 10 L 30 20 L 25 25 L 15 25 L 8 18 L 8 25 L 0 25 Z" fill="#2DD4BF"/>
+      
+      <!-- H의 가로 바 -->
+      <rect x="8" y="10" width="12" height="5" fill="#2DD4BF"/>
+      
+      <!-- 대각선 장식 요소 -->
+      <path d="M 20 0 L 30 10 L 25 15 L 15 5 Z" fill="#2DD4BF" opacity="0.8"/>
+    </g>
+  </g>
+  
+  <!-- HUDIUS 텍스트 -->
+  <text x="80" y="40" class="hudius-text" font-size="28" fill="#2DD4BF">HUDIUS</text>
+  
+  <!-- THE BEST PARTNER 서브텍스트 -->
+  <text x="80" y="58" class="partner-text" font-size="10" fill="#9CA3AF">THE BEST PARTNER</text>
+</svg>

@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>GreenFesco - 태양광 MLOps 포털</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            /* 통일된 색상 팔레트 */
+            --primary: #0EA5E9;        /* Sky Blue */
+            --primary-dark: #0284C7;   
+            --secondary: #10B981;      /* Emerald */
+            --secondary-dark: #059669;
+            --accent: #F59E0B;         /* Amber */
+            --accent-dark: #D97706;
+            --danger: #EF4444;         /* Red */
+            --gray-50: #F8FAFC;
+            --gray-100: #F1F5F9;
+            --gray-200: #E2E8F0;
+            --gray-600: #475569;
+            --gray-800: #1E293B;
+            --gray-900: #0F172A;
+        }
+        
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background: linear-gradient(135deg, var(--gray-50) 0%, var(--gray-100) 100%);
+            color: var(--gray-800);
+            line-height: 1.6;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transition: all 0.3s ease;
+            border: 1px solid var(--gray-200);
+        }
+        
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: inline-block;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(14, 165, 233, 0.3);
+        }
+        
+        .nav-link {
+            color: var(--gray-600);
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+        
+        .nav-link:hover {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .stat-card {
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            display: block;
+        }
+        
+        .stat-label {
+            color: var(--gray-600);
+            font-size: 0.875rem;
+            margin-top: 4px;
+        }
+        
+        .section-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        
+        .section-subtitle {
+            color: var(--gray-600);
+            text-align: center;
+            margin-bottom: 3rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .chart-container {
+            position: relative;
+            width: 100%;
+            height: 300px;
+        }
+        
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .status-online {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--secondary-dark);
+        }
+        
+        .header-gradient {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        }
+        
+        .logo {
+            transition: transform 0.3s ease;
+        }
+        
+        .logo:hover {
+            transform: scale(1.05);
+        }
+        
+        @media (max-width: 768px) {
+            .section-title { font-size: 1.5rem; }
+            .stat-number { font-size: 2rem; }
+            .logo { height: 3rem; }
+        }
+        
+        @media (max-width: 640px) {
+            .header-flex-col .logo { margin-bottom: 1rem; }
+            .header-flex-col { text-align: center; }
+        }
+        
+        .service-tab {
+            padding: 8px 16px;
+            border: 2px solid var(--gray-200);
+            border-radius: 8px;
+            background: white;
+            color: var(--gray-600);
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .service-tab:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+        
+        .service-tab.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        
+        .service-frame-container {
+            height: calc(100vh - 400px);
+            min-height: 600px;
+            width: 100%;
+            border: 2px solid var(--gray-200);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        @media (max-width: 768px) {
+            .service-frame-container {
+                height: calc(100vh - 300px);
+                min-height: 500px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 헤더 -->
+    <header class="header-gradient text-white">
+        <div class="container mx-auto px-6 py-8">
+            <div class="flex flex-col md:flex-row md:justify-between md:items-center">
+                <!-- 로고 및 제목 (좌측) -->
+                <div class="flex items-center mb-4 md:mb-0">
+                    <div>
+                        <h1 class="text-3xl md:text-4xl font-bold">
+                            HUDIUS-SOLAR MLOps 포털
+                        </h1>
+                        <p class="text-lg md:text-xl opacity-90 mt-1">
+                            태양광 발전량 예측 및 모니터링을 위한 통합 MLOps 플랫폼
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- 상태 표시 (우측) -->
+                <div class="flex items-center gap-4">
+                    <div class="hidden md:block text-right">
+                        <div class="text-sm opacity-80">시스템 상태</div>
+                        <div class="font-semibold text-green-300">● 정상 운영</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 네비게이션 -->
+    <nav class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex flex-wrap justify-between items-center">
+                <!-- 관리 도구 링크 (왼쪽) -->
+                <div class="flex flex-wrap gap-4">
+                    <span class="text-gray-500 text-sm font-medium mr-2">관리 도구:</span>
+                    <a href="javascript:void(0)" onclick="requireLogin('/airflow/', 'Airflow')" class="nav-link admin-tool">🔄 Airflow</a>
+                    <a href="javascript:void(0)" onclick="requireLogin('/mlflow/', 'MLflow')" class="nav-link admin-tool">🧠 MLflow</a>
+                    <a href="javascript:void(0)" onclick="requireLogin('/grafana/', 'Grafana')" class="nav-link admin-tool">📊 Grafana</a>
+                    <a href="javascript:void(0)" onclick="requireLogin('/superset/', 'Superset')" class="nav-link admin-tool">📈 Superset</a>
+                    <a href="javascript:void(0)" onclick="requireLogin('/keycloak/', 'Keycloak')" class="nav-link admin-tool">🔐 Keycloak</a>
+                    <a href="javascript:void(0)" onclick="requireLogin('/minio/', 'MinIO')" class="nav-link admin-tool">💾 MinIO</a>
+                    <a href="javascript:void(0)" onclick="requireLogin('/prometheus/', 'Prometheus')" class="nav-link admin-tool">📡 Prometheus</a>
+                </div>
+                
+                <!-- 로그인 버튼 (오른쪽) -->
+                <div class="flex items-center gap-4">
+                    <button id="loginBtn" onclick="showLoginModal()" class="btn-primary">
+                        🔐 관리자 로그인
+                    </button>
+                    <div id="userInfo" class="hidden">
+                        <span class="text-green-600 font-medium">👤 관리자님 환영합니다</span>
+                        <button onclick="logout()" class="ml-2 text-red-500 hover:text-red-700">로그아웃</button>
+                    </div>
+                    <!-- 디버깅용 버튼 -->
+                    <button onclick="console.log('현재 로그인 상태:', isLoggedIn)" class="text-xs text-gray-500 border px-2 py-1 rounded">
+                        상태확인
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 메인 컨텐츠 -->
+    <main class="container mx-auto px-6 py-12">
+        
+        <!-- 시스템 상태 -->
+        <section class="mb-16">
+            <h2 class="section-title">시스템 현황</h2>
+            <p class="section-subtitle">
+                실시간 시스템 상태와 주요 메트릭을 확인하세요
+            </p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="card stat-card">
+                    <span class="stat-number">99.9%</span>
+                    <div class="stat-label">시스템 가용률</div>
+                    <div class="status-badge status-online mt-2">
+                        ● 정상 운영
+                    </div>
+                </div>
+                
+                <div class="card stat-card">
+                    <span class="stat-number">5.2%</span>
+                    <div class="stat-label">모델 MAPE</div>
+                    <div class="status-badge status-online mt-2">
+                        ● 높은 정확도
+                    </div>
+                </div>
+                
+                <div class="card stat-card">
+                    <span class="stat-number">1.67M</span>
+                    <div class="stat-label">모델 파라미터</div>
+                    <div class="status-badge status-online mt-2">
+                        ● 최적화됨
+                    </div>
+                </div>
+                
+                <div class="card stat-card">
+                    <span class="stat-number">24h</span>
+                    <div class="stat-label">예측 범위</div>
+                    <div class="status-badge status-online mt-2">
+                        ● 실시간 예측
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 모델 성능 차트 -->
+        <section class="mb-16">
+            <h2 class="section-title">모델 성능 분석</h2>
+            <p class="section-subtitle">
+                트랜스포머 기반 PatchTST 모델의 성능 지표와 파라미터 분포
+            </p>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="card p-6">
+                    <h3 class="text-xl font-semibold mb-4 text-center">파라미터 분포</h3>
+                    <div class="chart-container">
+                        <canvas id="paramChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="card p-6">
+                    <h3 class="text-xl font-semibold mb-4 text-center">정확도 추이</h3>
+                    <div class="chart-container">
+                        <canvas id="accuracyChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- MLOps 파이프라인 -->
+        <section class="mb-16">
+            <h2 class="section-title">MLOps 파이프라인</h2>
+            <p class="section-subtitle">
+                데이터 수집부터 모델 배포까지의 자동화된 워크플로우
+            </p>
+            
+            <div class="card p-8">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <span class="text-white text-2xl">📊</span>
+                        </div>
+                        <h4 class="font-semibold mb-2">데이터 수집</h4>
+                        <p class="text-sm text-gray-600">실시간 센서 데이터와 기상 API 연동</p>
+                    </div>
+                    
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <span class="text-white text-2xl">🧠</span>
+                        </div>
+                        <h4 class="font-semibold mb-2">모델 학습</h4>
+                        <p class="text-sm text-gray-600">자동화된 하이퍼파라미터 튜닝</p>
+                    </div>
+                    
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-gradient-to-br from-amber-400 to-amber-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <span class="text-white text-2xl">🚀</span>
+                        </div>
+                        <h4 class="font-semibold mb-2">모델 배포</h4>
+                        <p class="text-sm text-gray-600">CI/CD 파이프라인을 통한 자동 배포</p>
+                    </div>
+                    
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-gradient-to-br from-purple-400 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <span class="text-white text-2xl">📡</span>
+                        </div>
+                        <h4 class="font-semibold mb-2">모니터링</h4>
+                        <p class="text-sm text-gray-600">실시간 성능 추적 및 알림</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 빠른 액세스 -->
+        <section class="mb-16">
+            <h2 class="section-title">빠른 액세스</h2>
+            <p class="section-subtitle">
+                자주 사용하는 도구와 대시보드에 빠르게 접근하세요
+            </p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="card p-6 text-center">
+                    <div class="text-4xl mb-4">🎛️</div>
+                    <h3 class="text-lg font-semibold mb-2">관리자 대시보드</h3>
+                    <p class="text-gray-600 mb-4">통합 관리 도구 및 시스템 모니터링</p>
+                    <button onclick="requireLogin('/dashboard/', '관리자 대시보드')" class="btn-primary">대시보드 열기</button>
+                </div>
+                
+                <div class="card p-6 text-center">
+                    <div class="text-4xl mb-4">🧪</div>
+                    <h3 class="text-lg font-semibold mb-2">실험 관리</h3>
+                    <p class="text-gray-600 mb-4">모델 학습 실험 추적 및 비교</p>
+                    <button onclick="requireLogin('/mlflow/', 'MLflow')" class="btn-primary">MLflow 열기</button>
+                </div>
+                
+                <div class="card p-6 text-center">
+                    <div class="text-4xl mb-4">⚙️</div>
+                    <h3 class="text-lg font-semibold mb-2">워크플로우</h3>
+                    <p class="text-gray-600 mb-4">데이터 파이프라인 스케줄링</p>
+                    <button onclick="requireLogin('/airflow/', 'Airflow')" class="btn-primary">Airflow 열기</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 통합 대시보드 -->
+        <section id="integrated-dashboard">
+            <h2 class="section-title">통합 대시보드</h2>
+            <p class="section-subtitle">
+                모든 도구를 메인 화면에서 통합하여 사용하세요
+            </p>
+            
+            <!-- 서비스 선택 탭 -->
+            <div class="card p-6 mb-6">
+                <div class="flex flex-wrap gap-2 mb-4">
+                    <button onclick="switchService('airflow')" id="tab-airflow" class="service-tab active">
+                        ⚙️ Airflow
+                    </button>
+                    <button onclick="switchService('mlflow')" id="tab-mlflow" class="service-tab">
+                        🧪 MLflow
+                    </button>
+                    <button onclick="switchService('superset')" id="tab-superset" class="service-tab">
+                        📊 Superset
+                    </button>
+                    <button onclick="switchService('grafana')" id="tab-grafana" class="service-tab">
+                        📈 Grafana
+                    </button>
+                    <button onclick="switchService('minio')" id="tab-minio" class="service-tab">
+                        💾 MinIO
+                    </button>
+                    <button onclick="switchService('prometheus')" id="tab-prometheus" class="service-tab">
+                        📡 Prometheus
+                    </button>
+                </div>
+                
+                <!-- iframe 컨테이너 -->
+                <div id="serviceFrame" class="service-frame-container">
+                    <iframe id="serviceIframe" src="/airflow/" class="w-full h-full border-0"></iframe>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 로그인 모달 -->
+    <div id="loginModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-8 max-w-md w-full mx-4">
+            <div class="text-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-900">🔐 관리자 로그인</h2>
+                <p class="text-gray-600 mt-2">관리 도구에 접근하려면 인증이 필요합니다</p>
+                <div class="text-xs text-gray-500 mt-2 p-2 bg-gray-50 rounded">
+                    테스트 계정: admin / hudius2020! 또는 test / test123
+                </div>
+            </div>
+            
+            <form id="loginForm" onsubmit="performLogin(event)">
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2">
+                        사용자명
+                    </label>
+                    <input type="text" id="username" required 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                           placeholder="관리자 계정">
+                </div>
+                
+                <div class="mb-6">
+                    <label class="block text-gray-700 text-sm font-bold mb-2">
+                        비밀번호
+                    </label>
+                    <input type="password" id="password" required 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                           placeholder="비밀번호">
+                </div>
+                
+                <div id="loginError" class="hidden mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+                    로그인에 실패했습니다. 계정 정보를 확인해주세요.
+                </div>
+                
+                <div class="flex gap-4">
+                    <button type="button" onclick="hideLoginModal()" 
+                            class="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+                        취소
+                    </button>
+                    <button type="submit" 
+                            class="flex-1 btn-primary">
+                        로그인
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 푸터 -->
+    <footer class="bg-gray-900 text-white py-8 mt-16">
+        <div class="container mx-auto px-6 text-center">
+            <p class="mb-2">&copy; 2024 GreenFesco. 모든 권리 보유.</p>
+            <p class="text-gray-400 text-sm">태양광 발전량 예측 MLOps 플랫폼</p>
+        </div>
+    </footer>
+
+    <script>
+        // 로그인 상태 관리
+        let isLoggedIn = localStorage.getItem('isAdminLoggedIn') === 'true';
+        let pendingUrl = '';
+        
+        console.log('초기 로그인 상태:', isLoggedIn);
+        console.log('localStorage 값:', localStorage.getItem('isAdminLoggedIn'));
+        
+        // 페이지 로드 시 로그인 상태 확인
+        document.addEventListener('DOMContentLoaded', function() {
+            updateLoginState();
+            updateAdminToolStyles();
+        });
+        
+        function updateLoginState() {
+            const loginBtn = document.getElementById('loginBtn');
+            const userInfo = document.getElementById('userInfo');
+            
+            if (isLoggedIn) {
+                loginBtn.classList.add('hidden');
+                userInfo.classList.remove('hidden');
+            } else {
+                loginBtn.classList.remove('hidden');
+                userInfo.classList.add('hidden');
+            }
+        }
+        
+        function updateAdminToolStyles() {
+            const adminTools = document.querySelectorAll('.admin-tool');
+            adminTools.forEach(tool => {
+                if (isLoggedIn) {
+                    tool.style.opacity = '1';
+                    tool.style.cursor = 'pointer';
+                } else {
+                    tool.style.opacity = '0.6';
+                    tool.style.cursor = 'not-allowed';
+                }
+            });
+        }
+        
+        function requireLogin(url, toolName) {
+            console.log('requireLogin 호출:', url, toolName, '로그인 상태:', isLoggedIn);
+            
+            if (isLoggedIn) {
+                // 로그인된 상태면 iframe에 표시
+                if (url === '/dashboard/') {
+                    // 대시보드는 현재 창에서 이동
+                    window.location.href = url;
+                } else {
+                    // 다른 도구들은 iframe에 표시
+                    loadServiceInIframe(url, toolName);
+                }
+            } else {
+                // 로그인이 필요하면 모달 표시
+                console.log('로그인 필요, 모달 표시');
+                pendingUrl = url;
+                showLoginModal();
+            }
+        }
+        
+        function loadServiceInIframe(url, toolName) {
+            const iframe = document.getElementById('serviceIframe');
+            const tabs = document.querySelectorAll('.service-tab');
+            
+            // 모든 탭에서 active 클래스 제거
+            tabs.forEach(tab => tab.classList.remove('active'));
+            
+            // 해당 서비스 탭에 active 클래스 추가
+            const serviceName = url.replace('/', '').replace('/', '');
+            const tabElement = document.getElementById(`tab-${serviceName}`);
+            if (tabElement) {
+                tabElement.classList.add('active');
+            }
+            
+            // 로딩 상태 표시
+            iframe.style.opacity = '0.5';
+            iframe.style.transition = 'opacity 0.3s ease';
+            
+            // iframe에 서비스 로드
+            iframe.src = url;
+            
+            // iframe 로딩 완료 시 투명도 복원
+            iframe.onload = function() {
+                iframe.style.opacity = '1';
+            };
+            
+            // 통합 대시보드 섹션으로 스크롤
+            document.querySelector('#integrated-dashboard').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        function showLoginModal() {
+            document.getElementById('loginModal').classList.remove('hidden');
+            document.getElementById('username').focus();
+            document.getElementById('loginError').classList.add('hidden');
+        }
+        
+        function hideLoginModal() {
+            document.getElementById('loginModal').classList.add('hidden');
+            document.getElementById('loginForm').reset();
+            pendingUrl = '';
+        }
+        
+        function performLogin(event) {
+            event.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            console.log('로그인 시도:', username); // 디버깅용
+            
+            // 간단한 관리자 계정 체크 (실제 환경에서는 서버 인증 필요)
+            if ((username === 'admin' && password === 'hudius2020!') || 
+                (username === 'test' && password === 'test123')) {
+                isLoggedIn = true;
+                localStorage.setItem('isAdminLoggedIn', 'true');
+                updateLoginState();
+                updateAdminToolStyles();
+                hideLoginModal();
+                
+                // 로그인 성공 시 pendingUrl을 iframe에 표시
+                if (pendingUrl) {
+                    loadServiceInIframe(pendingUrl, '');
+                    pendingUrl = '';
+                } else {
+                    // 기본적으로 대시보드로 이동
+                    window.location.href = '/dashboard/';
+                }
+            } else {
+                document.getElementById('loginError').classList.remove('hidden');
+            }
+        }
+        
+        function logout() {
+            isLoggedIn = false;
+            localStorage.removeItem('isAdminLoggedIn');
+            updateLoginState();
+            updateAdminToolStyles();
+        }
+        
+        function switchService(service) {
+            const iframe = document.getElementById('serviceIframe');
+            const tabs = document.querySelectorAll('.service-tab');
+            
+            // 모든 탭에서 active 클래스 제거
+            tabs.forEach(tab => tab.classList.remove('active'));
+            
+            // 클릭된 탭에 active 클래스 추가
+            document.getElementById(`tab-${service}`).classList.add('active');
+            
+            // 서비스별 URL 설정
+            const serviceUrls = {
+                'airflow': '/airflow/',
+                'mlflow': '/mlflow/',
+                'superset': '/superset/',
+                'grafana': '/grafana/',
+                'minio': '/minio/',
+                'prometheus': '/prometheus/'
+            };
+            
+            iframe.src = serviceUrls[service];
+        }
+        
+        // ESC 키로 모달 닫기
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                hideLoginModal();
+            }
+        });
+        
+        // 모달 배경 클릭 시 닫기
+        document.getElementById('loginModal').addEventListener('click', function(event) {
+            if (event.target === this) {
+                hideLoginModal();
+            }
+        });
+
+        // 파라미터 분포 차트
+        const paramCtx = document.getElementById('paramChart').getContext('2d');
+        new Chart(paramCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Multi-Head Attention', 'Feed-Forward Network', 'Patch Embedding', 'Other Layers'],
+                datasets: [{
+                    data: [789504, 788736, 61696, 6596],
+                    backgroundColor: [
+                        '#0EA5E9', '#10B981', '#F59E0B', '#EF4444'
+                    ],
+                    borderWidth: 2,
+                    borderColor: '#fff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            font: { family: 'Noto Sans KR' },
+                            padding: 20
+                        }
+                    }
+                }
+            }
+        });
+
+        // 정확도 추이 차트
+        const accuracyCtx = document.getElementById('accuracyChart').getContext('2d');
+        new Chart(accuracyCtx, {
+            type: 'line',
+            data: {
+                labels: ['1월', '2월', '3월', '4월', '5월', '6월'],
+                datasets: [{
+                    label: '정확도 (%)',
+                    data: [94.2, 94.8, 95.1, 94.9, 95.3, 95.7],
+                    borderColor: '#10B981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: {
+                            font: { family: 'Noto Sans KR' }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        min: 90,
+                        max: 100,
+                        ticks: {
+                            font: { family: 'Noto Sans KR' }
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            font: { family: 'Noto Sans KR' }
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
